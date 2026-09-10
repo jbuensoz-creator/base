@@ -149,6 +149,7 @@ export const STOPWORDS = new Set([
   "sous",
   "chez",
   "entre",
+  "selon",
   // Degree adverbs:
   "tres",
   "bien",

@@ -103,6 +103,7 @@ export { strictPolicy } from "./core/policy.mjs";
 // Router: derives a route (agent → process) from the files, scores via the Ranker contract, and
 // abstains by inspectable rules. The base.routing.v1 registry is a generated, deterministic projection.
 export { deriveRoutingSignals, decideRoute, buildRoutingRegistry, ROUTING_DEFAULTS, ROUTABLE_KINDS } from "./core/routing.mjs";
+export { resolveEffectivePolicy, isAllowed } from "./core/route-policy.mjs";
 export { routeTerms, routeAvoidReasons } from "./core/route-service.mjs";
 export { ROUTER_BODY, ROUTER_INTRO, renderClaudeMd, renderBootstrapMd, renderCursorRule, renderMcpInstructions, MCP_ROUTE_DISCIPLINE, MCP_READ_DISCIPLINE, MCP_CONTINUITY } from "./core/bootstrap.mjs";
 
