@@ -44,7 +44,9 @@ const MCP_TOOLS = new Set(MCP_TOOL_NAMES);
 
 // Default adapters. An empty/null slot means "use the broker's built-in behaviour" (neutral ranking,
 // advisory policy, no auth, default routing thresholds).
-export const DEFAULTS = { rankers: [], validators: [], policy: null, auth: null, routing: null, inventory: { exclude: [] }, language: DEFAULT_LANGUAGE };
+// LOCAL PATCH YourRender 2026-09-18 : l'annotation d'inventory déclare tracked_only en OPTIONNEL
+// (absent par défaut) pour que resolveConfigSafe (repli DEFAULTS) reste typé avec la clé du patch.
+export const DEFAULTS = { rankers: [], validators: [], policy: null, auth: null, routing: null, inventory: /** @type {{ exclude: string[], tracked_only?: boolean }} */ ({ exclude: [] }), language: DEFAULT_LANGUAGE };
 
 // Conventional basenames, in priority order. JSON (declarative, safe) is preferred over MJS.
 const CONFIG_BASENAMES = ["base.config.json", "base.config.mjs"];
@@ -95,7 +97,7 @@ export function mergeConfig(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     throw fail("config default export must be an object.");
   }
-  const out = /** @type {{ rankers: any[], validators: any[], policy: any, auth: any, routing: any, contextPack?: { budget: number } | null, inventory: { exclude: string[] }, language: string, framework_dir?: string, tools?: string[], views?: Record<string, any>, mcp?: { tools?: string[], agents?: string[], attribution_prefix?: boolean } | null }} */ ({ ...DEFAULTS });
+  const out = /** @type {{ rankers: any[], validators: any[], policy: any, auth: any, routing: any, contextPack?: { budget: number } | null, inventory: { exclude: string[], tracked_only?: boolean }, language: string, framework_dir?: string, tools?: string[], views?: Record<string, any>, mcp?: { tools?: string[], agents?: string[], attribution_prefix?: boolean } | null }} */ ({ ...DEFAULTS });
   if (raw.rankers !== undefined) {
     if (!Array.isArray(raw.rankers)) throw fail("`rankers` must be an array.");
     out.rankers = raw.rankers.map(instantiateRanker);
@@ -188,6 +190,17 @@ export function mergeConfig(raw) {
         throw fail("`inventory.exclude` entries must be strings.");
       }
       out.inventory = { exclude: normalizeExcludeList(raw.inventory.exclude) };
+      // LOCAL PATCH YourRender 2026-09-18 (écart au framework officiel 1.5.0 @ 3d04b4d) :
+      // `inventory.tracked_only` (booléen, défaut false) restreint l'inventaire aux fichiers suivis
+      // par git (voir walkResourceFiles dans base-core.mjs), pour qu'un manifeste commité soit
+      // reproductible sur un checkout CI propre. Absent, la clé n'est même pas posée : la forme de
+      // la config résolue reste strictement celle de l'officiel.
+      if (raw.inventory.tracked_only !== undefined) {
+        if (typeof raw.inventory.tracked_only !== "boolean") {
+          throw fail("`inventory.tracked_only` must be a boolean (default false: full working-tree inventory, official behavior).");
+        }
+        out.inventory.tracked_only = raw.inventory.tracked_only;
+      }
     }
   }
   return out;
