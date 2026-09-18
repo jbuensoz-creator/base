@@ -803,6 +803,10 @@ const routeBroker = createRouteBroker({
   hashArgs,
 });
 export const routeRequest = routeBroker.routeRequest;
+// LOCAL PATCH YourRender 2026-09-18 (test hook): expose the broker's corpus preparation so tests
+// (tests/route-prepared-corpus.test.mjs) can prove a preparedCorpus replay routes identically to a
+// fresh inventory — no behavior change.
+export const prepareRouteCorpus = routeBroker.prepareCorpus;
 // The help target alone, without routing anything: what a caller that decides for itself opens when
 // nothing on the routing map fits. Same resolution as an abstention's (root corpus, then framework).
 export const routingFallback = routeBroker.routingFallback;

@@ -80,7 +80,9 @@ const FAMILY_DEFINITIONS = [
 // dossier de cette taille (>20k fichiers de documentation). Lecture par pool borné, ordre conservé.
 const DOCS_READ_CONCURRENCY = 256;
 
-async function mapWithConcurrency(items, limit, fn) {
+// LOCAL PATCH YourRender 2026-09-18 (test hook): exported so tests/docs-model-read-pool.test.mjs
+// can instrument the pool directly (max in-flight, order, completeness) — no behavior change.
+export async function mapWithConcurrency(items, limit, fn) {
   const results = new Array(items.length);
   let next = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
