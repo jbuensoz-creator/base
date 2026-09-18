@@ -104,11 +104,17 @@ export { deriveRoutingSignals, decideRoute, buildRoutingRegistry, ROUTING_DEFAUL
 export { routeTerms, routeAvoidReasons } from "./core/route-service.mjs";
 export { ROUTER_BODY, ROUTER_INTRO, renderClaudeMd, renderBootstrapMd, renderCursorRule, renderMcpInstructions, MCP_ROUTE_DISCIPLINE, MCP_READ_DISCIPLINE, MCP_CONTINUITY } from "./core/bootstrap.mjs";
 
-export async function walkResourceFiles(rootDir, { exclude } = /** @type {{ exclude?: string[] }} */ ({})) {
+// LOCAL PATCH YourRender 2026-09-18 : inventory.tracked_only (défaut false = officiel inchangé) — cf. ./core/tracked-inventory.mjs.
+import { filterToGitTrackedFiles } from "./core/tracked-inventory.mjs";
+
+export async function walkResourceFiles(rootDir, { exclude, trackedOnly } = /** @type {{ exclude?: string[], trackedOnly?: boolean }} */ ({})) {
   const root = path.resolve(rootDir);
   // The project's own exclusions: passed by inventoryResources (which resolved the config), or
   // resolved here for direct callers. Root-relative prefixes, normalized by the config layer.
-  const excludeList = exclude ?? (await resolveConfigSafe(root)).inventory.exclude;
+  // LOCAL PATCH: trackedOnly est résolu par le même accès config qu'exclude (une résolution par appel).
+  const cfg = exclude === undefined || trackedOnly === undefined ? await resolveConfigSafe(root) : null;
+  const excludeList = exclude ?? cfg?.inventory.exclude ?? [];
+  const tracked = trackedOnly ?? cfg?.inventory.tracked_only === true;
   const results = [];
 
   async function visit(dir) {
@@ -158,6 +164,7 @@ export async function walkResourceFiles(rootDir, { exclude } = /** @type {{ excl
   }
 
   await visit(root);
+  if (tracked) return filterToGitTrackedFiles(root, results); // LOCAL PATCH YourRender 2026-09-18
   return results;
 }
 
@@ -168,7 +175,7 @@ export async function inventoryResources(rootDir, { egress } = /** @type {Broker
   const root = path.resolve(rootDir);
   try {
     const cfg = await resolveConfigSafe(root);
-    const files = (await walkResourceFiles(root, { exclude: cfg.inventory.exclude })).filter((f) => !isRuntimeArtifact(f));
+    const files = (await walkResourceFiles(root, { exclude: cfg.inventory.exclude, trackedOnly: cfg.inventory.tracked_only === true })).filter((f) => !isRuntimeArtifact(f));
     const resources = [];
 
     for (const relativePath of files) {
@@ -913,7 +920,7 @@ export async function runRouteTests(rootDir, { fixturesPath, config, strategy = 
         continue;
       }
       const actual = strategy === "production"
-        ? await routeRequest(root, request, { config: cfg, preparedCorpus: sharedCorpus })
+        ? await routeRequest(root, request, { config: cfg, preparedCorpus: sharedCorpus ?? undefined })
         : { request, ...(await computeRoute(root, request, resources, cfg)) };
       const mismatches = compareRoute(expect, actual);
       if (mismatches.length) failures.push({ source: suite.source, index, request, mismatches, actual: summarizeRoute(actual) });

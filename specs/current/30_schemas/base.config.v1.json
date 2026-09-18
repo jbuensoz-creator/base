@@ -248,6 +248,10 @@
             "type": "string"
           },
           "description": "Root-relative path prefixes excluded from inventory/discovery/routing/manifest (e.g. \"specs\", \"docs/en\")."
+        },
+        "tracked_only": {
+          "type": "boolean",
+          "description": "LOCAL PATCH YourRender 2026-09-18: when true, the inventory retains only files tracked by git (one `git ls-files` of the root per inventory), so a committed manifest is reproducible on a clean CI checkout. Default false: the official full working-tree inventory, unchanged."
         }
       }
     },
