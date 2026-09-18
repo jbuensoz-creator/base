@@ -75,11 +75,29 @@ const FAMILY_DEFINITIONS = [
   [".temp", "Ignored private working notebook"],
 ];
 
+// LOCAL PATCH YourRender 2026-09-18 (écart identifié au framework officiel 1.5.0 @ 3d04b4d) :
+// le `Promise.all` d'origine ouvrait tout le corpus en parallèle et provoquait EMFILE sur un
+// dossier de cette taille (>20k fichiers de documentation). Lecture par pool borné, ordre conservé.
+const DOCS_READ_CONCURRENCY = 256;
+
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
 export async function buildDocsModel(rootDir, options = {}) {
   const root = path.resolve(rootDir);
   const target = normalizeTarget(options.target);
   const sourceFiles = await walkDocsFiles(root);
-  const allResources = await Promise.all(sourceFiles.map((relativePath) => readDocResource(root, relativePath)));
+  const allResources = await mapWithConcurrency(sourceFiles, DOCS_READ_CONCURRENCY, (relativePath) => readDocResource(root, relativePath));
   allResources.sort((a, b) => compareByCodePoint(a.path, b.path));
   assignSiteKeys(allResources);
   attachIncomingBacklinks(allResources);

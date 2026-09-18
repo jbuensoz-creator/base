@@ -892,6 +892,13 @@ export async function runRouteTests(rootDir, { fixturesPath, config, strategy = 
     productionStrategy = routingStrategy((await readSettings(root)).routing ?? null);
   } catch { /* unreadable settings → the lexical default, as in routing */ }
 
+  // LOCAL PATCH YourRender 2026-09-18 — production replay shares ONE prepared corpus across cases.
+  // Official 1.5.0 re-inventories the whole corpus per case inside routeRequest (6460 resources here
+  // → ~2.8 s/case → >60 min for fixtures+examples, the pre-commit hook appeared hung). The corpus
+  // cannot change during a replay, so prepare it once and hand it to routeRequest (same code path,
+  // same journaling, same egress/deny handling — only the redundant re-inventory is skipped).
+  const sharedCorpus = strategy === "production" ? await routeBroker.prepareCorpus(root, cfg, {}) : null;
+
   const runSuite = async (suite) => {
     const failures = [];
     for (const [index, testCase] of suite.cases.entries()) {
@@ -902,7 +909,7 @@ export async function runRouteTests(rootDir, { fixturesPath, config, strategy = 
         continue;
       }
       const actual = strategy === "production"
-        ? await routeRequest(root, request, { config: cfg })
+        ? await routeRequest(root, request, { config: cfg, preparedCorpus: sharedCorpus })
         : { request, ...(await computeRoute(root, request, resources, cfg)) };
       const mismatches = compareRoute(expect, actual);
       if (mismatches.length) failures.push({ source: suite.source, index, request, mismatches, actual: summarizeRoute(actual) });

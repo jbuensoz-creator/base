@@ -199,16 +199,19 @@ export function createRouteBroker(deps) {
    * The traced public entry: prepare the deny-filtered corpus, route it, journal the outcome. The
    * facade re-exports this with an unchanged signature.
    * @param {string} rootDir @param {string} request
-   * @param {{ limit?: number, config?: any, signal?: AbortSignal, egress?: any, embeddingStrategy?: any }} [options]
+   * @param {{ limit?: number, config?: any, signal?: AbortSignal, egress?: any, embeddingStrategy?: any, preparedCorpus?: any[] }} [options]
    */
-  async function routeRequest(rootDir, request, { limit, config, signal, egress, embeddingStrategy } = {}) {
+  async function routeRequest(rootDir, request, { limit, config, signal, egress, embeddingStrategy, preparedCorpus } = {}) {
     const start = Date.now();
     const root = pathResolve(rootDir);
     try {
       const cfg = config ?? await resolveConfig(root);
       // Egress: route over the egress-filtered inventory (a confidential / local-only target is never
       // surfaced to a remote model). The deny veto is applied ONCE here, upstream of BOTH strategies.
-      const resources = await prepareCorpus(root, cfg, { egress });
+      // LOCAL PATCH YourRender 2026-09-18: a caller that already prepared the deny-filtered corpus
+      // (route-test production replay over N cases) passes it as preparedCorpus; null → inventoried
+      // fresh, exactly as official 1.5.0. Corpus content cannot change during a single replay.
+      const resources = preparedCorpus ?? await prepareCorpus(root, cfg, { egress });
       // A routed result must always carry a real agent (routing.md, FR-ROUTE-003). The embedding
       // strategy can route a process whose agent was not in the retrieved shortlist; fill it from the
       // full corpus here, covering both strategies (a no-op for the lexical floor, which already does).
