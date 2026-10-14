@@ -62,7 +62,9 @@ counter-example, never across their concatenation** (two entries that each hit O
 not combine into a veto neither justifies alone — a process whose counter-examples share its own
 nouns would otherwise veto itself out of every request); within an entry, two term hits are required
 (one suffices for a single-term request), and a short term (three characters or fewer) must match a
-whole word of the entry. `use_when`
+whole word of the entry. An entry containing exactly one meaningful token vetoes on an exact
+whole-token match even in a longer request; substring matches do not qualify for this case.
+This permits a named organisation exclusion without adding generic words shared by valid requests. `use_when`
 keeps one job (when to use); examples and counter-examples live in the structured `routing` block, not
 hidden in `use_when`. All of it is **progressive**: a resource routes from its title/description alone;
 richer fields are optional and become advisory/strict only by scope and config.
@@ -171,6 +173,10 @@ the intra-root `top2_margin` (0.2). A single routed root always routes; none rou
 aborting the healthy ones.
 
 ## Declarative routing policy — `deny` (FR-ROUTE-003)
+
+The lexical computation, production routing and generated `AGENTS.md` catalogue apply the same
+agent deny pre-filter. Denying an agent removes its processes from the lexical test path as well;
+the files remain discoverable as context and do not become direct service entry points.
 
 A node (root, agent) may carry a `routing.deny` policy that folds **monotonically** down the chain
 (`resolveEffectivePolicy`, `tools/core/route-policy.mjs`): `deny` (targets it never routes to)

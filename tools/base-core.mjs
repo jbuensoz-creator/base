@@ -882,7 +882,7 @@ export async function runRouteTests(rootDir, { fixturesPath, config, strategy = 
   }
 
   if (wantExamples) {
-    const cases = casesFromExamples(resources);
+    const cases = casesFromExamples(resources, cfg);
     if (cases.length) suites.push({ source: "examples", path: null, cases });
     else if (examples) {
       // Same rule as a named fixtures file: an explicit `--examples` with nothing to replay certifies

@@ -18,7 +18,8 @@ import { isGeneratedProjection } from "./runtime-artifacts.mjs";
 import { TOOL_ENTRY_POINTS, DEFAULT_TOOL } from "./perimeter.mjs";
 import { renderAgentsMd, renderBootstrapMd, renderToolMatrix, renderClaudeMd, renderCursorRule } from "./bootstrap.mjs";
 import { renderRoutingIndex } from "./index-md.mjs";
-import { buildRoutingRegistry } from "./routing.mjs";
+import { buildRoutingRegistry, ROUTABLE_KINDS, agentDirOf } from "./routing.mjs";
+import { denyFilterResources } from "./route-policy.mjs";
 import { resolveFrameworkRoot } from "./framework-root.mjs";
 
 /**
@@ -38,7 +39,12 @@ export function createProjections({ inventoryResources, resolveConfig, recordEve
   // Router derives candidates in memory for small projects; the on-disk face is a scale optimisation
   // behind the same model, not a file every project carries.
   const PROJECTIONS = {
-    "agents-md": async (resources, root) => ((await entryPointsOf(root)).has("AGENTS.md") ? [{ path: "AGENTS.md", content: renderAgentsMd(resources, await languageOf(root)) }] : []),
+    "agents-md": async (resources, root) => {
+      if (!(await entryPointsOf(root)).has("AGENTS.md")) return [];
+      const cfg = await resolveConfig(root);
+      const eligible = denyFilterResources(resources, { rootDeny: cfg.routing?.policy?.deny ?? [], routableKinds: ROUTABLE_KINDS, agentDirOf });
+      return [{ path: "AGENTS.md", content: renderAgentsMd(eligible, cfg.language) }];
+    },
     tools: async (_resources, root) => [{ path: ".ai/tools.md", content: renderToolMatrix(await languageOf(root)) }],
     // One canonical router body (core/bootstrap.mjs) projected into the entry point(s) THIS root uses,
     // so they cannot drift — and so a build never puts back the file of a tool nobody chose.

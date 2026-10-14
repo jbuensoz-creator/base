@@ -6,6 +6,13 @@ Tous les changements notables de BASE sont documentés ici. Le format suit l'esp
 
 ## [Unreleased]
 
+### Corrections
+- Le calcul lexical et ses tests retirent les procédures d'un agent exclu par la politique de routage, comme le routage de production.
+- Le catalogue généré dans AGENTS.md respecte les exclusions de routage de la racine.
+- Le diagnostic conserve tous les chemins des grandes arborescences sans dépasser la limite d'arguments JavaScript.
+- Le diagnostic résout les références de dossiers sans reparcourir tous les fichiers pour chaque lien.
+- Une exclusion de routage contenant un seul mot significatif reconnaît ce mot exactement dans une demande plus longue, sans rejeter un nom qui n'en partage qu'une partie.
+
 ## [1.5.0] - 2026-09-17
 
 ### Documentation

@@ -8,6 +8,7 @@
 import { normalize, lexicalRanker, composeRankers } from "./rankers.mjs";
 import { compareByCodePoint } from "./ordering.mjs";
 import { deriveRoutingSignals, decideRoute, ROUTING_DEFAULTS, ROUTABLE_KINDS, agentDirOf } from "./routing.mjs";
+import { denyFilterResources } from "./route-policy.mjs";
 
 // Stopwords for routing and keyword term extraction: articles, fillers, and greetings must not
 // carry a route. Shared with base-core's keyword derivation (imported from here).
@@ -200,6 +201,12 @@ export function routeAvoidReasons(avoidEntries, terms) {
     // «calcule» still matches «calculer» (morphology without a stemmer).
     const hay = normalize(entry);
     const entryTokens = new Set(routeTerms(entry));
+    // A single named exclusion needs no second shared word, but must match exactly:
+    // «YourQuantix» excludes that organisation without vetoing «Your Render».
+    if (entryTokens.size === 1) {
+      for (const term of terms) if (entryTokens.has(term)) hits.add(term);
+      continue;
+    }
     const entryHits = terms.filter((term) => (term.length <= 3 ? entryTokens.has(term) : hay.includes(term)));
     if (entryHits.length >= minimumHits) for (const term of entryHits) hits.add(term);
   }
@@ -240,8 +247,12 @@ export function selfVetoedPhrasings(resource) {
 // cases — the drift guard for «formulations telles que vos utilisateurs les emploient», with a
 // scope-aware expect (an agent example asserts the agent; a process example asserts the process).
 // Pure corpus → cases; same comparator, same summary, zero new fixture format.
-export function casesFromExamples(resources) {
-  return resources.flatMap((resource) => {
+export function casesFromExamples(resources, cfg = null) {
+  const eligible = cfg?.routing?.policy?.deny?.length
+    ? denyFilterResources(resources, { rootDeny: cfg.routing.policy.deny, routableKinds: ROUTABLE_KINDS, agentDirOf })
+    : resources;
+  return eligible.flatMap((resource) => {
+    if (resource.status === "deprecated" || resource.status === "archived") return [];
     const declared = resource.metadata?.routing?.examples;
     if (!Array.isArray(declared)) return [];
     const expect = resource.type === "agent" ? { agent: resource.id } : { process: resource.id };
@@ -284,7 +295,8 @@ export async function computeRoute(root, request, resources, cfg, { limit, signa
   if (typeof limit === "number" && limit > 0) thresholds.max_candidates = limit;
   const ctx = { root, mode: "route", query: request, signal };
   const rankers = [lexicalRanker, ...(cfg.rankers ?? [])];
-  const { ranked, agentsByDir } = await rankResources(resources, terms, composeRankers(rankers), ctx);
+  const eligible = denyFilterResources(resources, { rootDeny: cfg.routing?.policy?.deny ?? [], routableKinds: ROUTABLE_KINDS, agentDirOf });
+  const { ranked, agentsByDir } = await rankResources(eligible, terms, composeRankers(rankers), ctx);
   const decision = decideRoute(ranked, agentsByDir, thresholds);
   const fallback = resolveFallback(cfg.routing?.fallback, resources, decision, framework ?? null);
   return fallback ? { ...decision, fallback } : decision;
