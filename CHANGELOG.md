@@ -6,6 +6,13 @@ Tous les changements notables de BASE sont documentés ici. Le format suit l'esp
 
 ## [Unreleased]
 
+### Corrections
+- Le calcul lexical et ses tests retirent les procédures d'un agent exclu par la politique de routage, comme le routage de production.
+- Le catalogue généré dans AGENTS.md respecte les exclusions de routage de la racine.
+- Le diagnostic conserve tous les chemins des grandes arborescences sans dépasser la limite d'arguments JavaScript.
+- Le diagnostic résout les références de dossiers sans reparcourir tous les fichiers pour chaque lien.
+- Une exclusion de routage contenant un seul mot significatif reconnaît ce mot exactement dans une demande plus longue, sans rejeter un nom qui n'en partage qu'une partie.
+
 ## [1.5.1] - 2026-10-02
 
 ### Ajouté
@@ -31,7 +38,15 @@ Tous les changements notables de BASE sont documentés ici. Le format suit l'esp
 - La porte relit chaque «Oui» contre les lignes rouges de la personne avant de rendre la fiche: un «Oui» qui en contredit une devient «Plus tard» ou «Non». Quand la personne a dit de ne rien changer, elle présente d'abord la proposition dans la conversation et demande avant d'écrire la fiche, même sous `.temp/`.
 
 ### Corrigé
-- La ligne «Pour appliquer» de `base init` se recopie telle quelle dans le terminal de la machine qui l'affiche: PowerShell sous Windows, où un chemin `C:\Users\…` n'a plus ses barres obliques inverses doublées, et un shell POSIX ailleurs. Un test fait passer par le vrai shell un chemin Windows, une apostrophe, un `$` et un `!`, et vérifie que chaque valeur revient inchangée.
+- La ligne «Pour appliquer» de `base init` se recopie telle quelle dans le terminal de la machine qui l'affiche: PowerShell sous Windows, où un chemin `C:\Users\…` n'a plus ses barres obliques inverses doublées, et un shell POSIX ailleurs. Un test fait passer par le vrai shell un chemin Windows, une apostrophe, un `# Changelog
+
+Tous les changements notables de BASE sont documentés ici. Le format suit l'esprit de [Keep a Changelog](https://keepachangelog.com/fr/): clair, humain, orienté impact.
+
+À partir de la 1.0, BASE suit une politique de compatibilité versionnée: la surface publique stable (format des ressources, commandes CLI, outils MCP, schémas de projection, contrat des points d'extension) ne change pas de façon incompatible sans incrément majeur, sauf après une dépréciation annoncée et sa fenêtre de transition. Détail: [Versions et stabilité](docs/reference/versions-et-stabilite.md).
+
+## [Unreleased]
+
+ et un `!`, et vérifie que chaque valeur revient inchangée.
 - L'export de la fiche de proposition s'adresse à l'assistant qui le lira, quel qu'il soit, avec des libellés neutres (Recommandation, Réponse, Nuance). Une carte sans réponse dit quelle recommandation s'applique, et les lignes rouges suivent les réponses: une session qui n'a jamais vu la fiche les a sous les yeux.
 - «Ce que l'assistant ne fera jamais» ne promet plus ce qu'aucune consigne ne garantit. Suivre une phrase cachée dans un document, ou affirmer une chose fausse, passe dans «Ce que l'IA ne réglera pas», avec ce qui protège.
 - `.temp/` entre dans le `.gitignore` que crée `base init`: la fiche et les notes d'entretien reprennent des faits des documents de la personne. Dans un dossier déjà suivi par git, la porte le signale.
