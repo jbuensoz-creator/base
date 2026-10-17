@@ -901,7 +901,7 @@ export async function runRouteTests(rootDir, { fixturesPath, config, strategy = 
   // → ~2.8 s/case → >60 min for fixtures+examples, the pre-commit hook appeared hung). The corpus
   // cannot change during a replay, so prepare it once and hand it to routeRequest (same code path,
   // same journaling, same egress/deny handling — only the redundant re-inventory is skipped).
-  const sharedCorpus = strategy === "production" ? await routeBroker.prepareCorpus(root, cfg, {}) : null;
+  const sharedCorpus = strategy === "production" ? await routeBroker.prepareCorpus(root, cfg, {}) : undefined;
 
   const runSuite = async (suite) => {
     const failures = [];

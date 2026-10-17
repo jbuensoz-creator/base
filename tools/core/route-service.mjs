@@ -247,6 +247,7 @@ export function selfVetoedPhrasings(resource) {
 // cases — the drift guard for «formulations telles que vos utilisateurs les emploient», with a
 // scope-aware expect (an agent example asserts the agent; a process example asserts the process).
 // Pure corpus → cases; same comparator, same summary, zero new fixture format.
+/** @param {any[]} resources @param {any} [cfg] the resolved root config; its `routing.policy.deny` is honoured */
 export function casesFromExamples(resources, cfg = null) {
   const eligible = cfg?.routing?.policy?.deny?.length
     ? denyFilterResources(resources, { rootDeny: cfg.routing.policy.deny, routableKinds: ROUTABLE_KINDS, agentDirOf })
