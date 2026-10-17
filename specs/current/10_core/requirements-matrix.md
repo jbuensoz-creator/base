@@ -55,9 +55,9 @@ when the weak/gap count rises against the baseline (`--ratchet`).
 | FR-RANK-002 | ✅ | `tests/base-rankers.test.mjs` |
 | FR-RANK-003 | ✅ | `tests/base-rankers.test.mjs` |
 | FR-RANK-004 | ✅ | `tests/base-rankers.test.mjs` |
-| FR-ROUTE-001 | ✅ | `tests/base-routing.test.mjs` |
+| FR-ROUTE-001 | ✅ | `tests/base-routing.test.mjs`<br>`tests/routing-named-exclusion.test.mjs` |
 | FR-ROUTE-002 | ✅ | `tests/base-routing.test.mjs` |
-| FR-ROUTE-003 | ✅ | `tests/base-routing.test.mjs`<br>`tests/route-adversarial.test.mjs`<br>`tests/route-policy.test.mjs`<br>`tests/route-veto.test.mjs`<br>`tests/route-workspace.test.mjs` |
+| FR-ROUTE-003 | ✅ | `tests/base-routing.test.mjs`<br>`tests/route-adversarial.test.mjs`<br>`tests/route-policy.test.mjs`<br>`tests/route-veto.test.mjs`<br>`tests/route-workspace.test.mjs`<br>`tests/routing-denied-agent-process.test.mjs` |
 | FR-ROUTE-004 | ✅ | `tests/base-routing.test.mjs` |
 | FR-ROUTE-005 | ✅ | `tests/adoption-five-minutes.test.mjs`<br>`tests/base-routing.test.mjs`<br>`tests/ci-route-fixtures.test.mjs`<br>`tests/route-index.test.mjs` |
 | FR-ROUTE-006 | ✅ | `packages/base-ranker-semantic/tests/hardening.test.mjs`<br>`packages/base-ranker-semantic/tests/index.test.mjs`<br>`tests/routing-vectors.test.mjs` |
